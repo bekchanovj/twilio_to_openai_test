@@ -1,11 +1,12 @@
 // Import required modules
-const { Configuration, OpenAIApi } = require("openai");
+const { OpenAI } = require("openai");
 
 // Define the main function for handling requests
 exports.handler = async function(context, event, callback) {
     // Set up the OpenAI API with the API key
-    const configuration = new Configuration({ apiKey: context.OPENAI_API_KEY });
-    const openai = new OpenAIApi(configuration);
+    const openai = new OpenAI({
+        apiKey: context.OPENAI_API_KEY 
+      });
 
     // Set up the Twilio VoiceResponse object to generate the TwiML
     const twiml = new Twilio.twiml.VoiceResponse();
@@ -78,8 +79,8 @@ exports.handler = async function(context, event, callback) {
     // Function to create a chat completion using the OpenAI API
     async function createChatCompletion(messages) {
         try {
-            const completion = await openai.createChatCompletion({
-                model: "gpt-3.5-turbo",
+            const completion = await openai.chat.completions.create({
+                model: "gpt-4o",
                 messages: messages,
                 temperature: 0.8, // Controls the randomness of the generated responses. Higher values (e.g., 1.0) make the output more random and creative, while lower values (e.g., 0.2) make it more focused and deterministic. You can adjust the temperature based on your desired level of creativity and exploration.
                 max_tokens: 100, //You can adjust this number to control the length of the generated responses. Keep in mind that setting max_tokens too low might result in responses that are cut off and don't make sense.
@@ -105,7 +106,7 @@ exports.handler = async function(context, event, callback) {
                 response.setBody(twiml.toString()); // Set the body of the response to the XML string representation of the TwiML response
                 return callback(null, response); // Return the response to the callback function
             }
-            return completion.data.choices[0].message.content;
+            return completion.choices[0].message.content;
         } catch (error) {
             // Check if the error is a timeout error
             if (error.code === "ETIMEDOUT" || error.code === "ESOCKETTIMEDOUT") {
